@@ -152,7 +152,7 @@ export default function Chat() {
               </button>
 
               {/* Edit Icon */}
-              <button className="p-3 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-400 transition-all duration-300">
+              <button onClick={handleEditChat} className="p-3 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-400 transition-all duration-300">
                 <img src="/assets/edit.png" alt="edit" className="w-6 h-6" />
               </button>
             </div>
