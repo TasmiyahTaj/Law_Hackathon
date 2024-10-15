@@ -2,12 +2,37 @@ import React, { useState } from "react";
 import ChatSidebar from "../../components/sidebar";
 import DeleteConfirmationModal from "../../components/deleteConfirmation";
 
+
+import { useEffect, useRef } from 'react';
+function formatMessage(text) {
+  // Replace asterisks around words to bold the words
+  const formattedText = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Replace double asterisks with bold
+    .replace(/\n/g, '<br />'); // Replace new lines with line breaks
+  
+  return { __html: formattedText }; // Return as HTML content
+}
+
 export default function Chat() {
   const [isSidebarVisible, setSidebarVisible] = useState(true);
   const [chatToDelete, setChatToDelete] = useState(null); // State to track the chat to be deleted
   const [message, setMessage] = useState(""); // For handling chat input
   const [messages, setMessages] = useState([]); // For displaying sent messages in the chat
   const [isSending, setIsSending] = useState(false);
+
+  const messagesEndRef = useRef(null);
+
+// Function to scroll to the bottom of the chat
+const scrollToBottom = () => {
+  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+};
+
+// Scroll to bottom whenever messages change
+useEffect(() => {
+  scrollToBottom();
+}, [messages]);
+
+  // Chat history
   const [chatHistory, setChatHistory] = useState([
     {
       id: 1,
@@ -115,6 +140,63 @@ export default function Chat() {
 
   return (
     <div className="bg-[#F5F6FA] h-screen flex flex-col">
+  {/* Sidebar and Chat Content */}
+  <div className="flex-grow flex">
+    {/* Sidebar */}
+    {isSidebarVisible ? (
+      <div
+        className="w-72 mt-2 h-full overflow-hidden transition-all ease-in-out duration-300 flex-shrink-0"
+      >
+        <ChatSidebar
+          chatHistory={chatHistory} // Pass chat history to the sidebar
+          onClose={() => setSidebarVisible(false)}
+          onDeleteRequest={handleDeleteRequest} // Pass the delete request handler
+        />
+      </div>
+    ) : (
+      <div className="flex items-start justify-start p-4 w-auto h-full transition-all ease-in-out duration-300 flex-shrink-0">
+        <div className="flex space-x-4 bg-white rounded-full shadow-md p-2">
+          {/* Chat Icon */}
+          <button
+            className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all duration-300"
+            onClick={() => setSidebarVisible(true)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+              />
+            </svg>
+          </button>
+
+          {/* Edit Icon */}
+          <button className="p-3 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-400 transition-all duration-300">
+            <img src="/assets/edit.png" alt="edit" className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+    )}
+
+    {/* Chat Content */}
+    <div className="flex-grow flex flex-col justify-between">
+      {/* Top-right with Clear button and Avatar */}
+      <div className="flex justify-end p-4">
+        <button
+          className="text-gray-500 bg-gray-200 rounded-full px-3 py-1 hover:bg-gray-300 mr-2"
+          onClick={() => setMessages([])}
+        >
+          Clear
+        </button>
+        <div className="bg-blue-500 rounded-full w-10 h-10 flex items-center justify-center text-white">
+          T
       {/* Sidebar and Chat Content */}
       <div className="flex-grow flex">
         {/* Sidebar */}
@@ -226,14 +308,73 @@ export default function Chat() {
         </div>
       </div>
 
-      {/* Modal for Deletion Confirmation */}
-      {chatToDelete && (
-        <DeleteConfirmationModal
-          title={chatToDelete.message} // Pass the message title to the modal
-          onCancel={() => setChatToDelete(null)} // Hide modal on cancel
-          onDelete={handleDelete} // Confirm deletion
+      {/* Chat Display Section */}
+      <div className="flex-grow p-4 overflow-y-auto" style={{ maxHeight: "calc(100vh - 160px)" }}>
+  {messages.length > 0 ? (
+    messages.map((msg, index) => (
+      <div key={index} className={`mb-2 flex ${msg.fromAI ? "justify-start" : "justify-end"}`}>
+        {msg.fromAI && (
+           <div className="mr-2 flex-shrink-0">
+           {/* Person Icon inside a black circle */}
+           <div className="bg-black rounded-full p-2">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+             </svg>
+           </div>
+         </div>
+        )}
+        <span
+          className={`py-2 px-4 rounded-lg inline-block ${msg.fromAI ? "bg-gray-200 text-black" : "bg-blue-500 text-white"}`}
+          style={{ maxWidth: "95%", margin: '10px', wordWrap: "break-word" }}
+          dangerouslySetInnerHTML={formatMessage(msg.message)} // Insert formatted message
         />
-      )}
+      </div>
+    ))
+  ) : (
+    <p className="text-gray-500">Su layout here</p>
+  )}
+</div>
+
+
+      {/* Chat Input Area */}
+      <div className="p-4 flex items-center space-x-4 border-t border-gray-300 bg-white">
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type your message"
+          className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
+          disabled={isSending}
+        />
+        <button
+          className="bg-blue-500 text-white rounded-full p-3 hover:bg-blue-600"
+          onClick={handleSendMessage}
+          disabled={isSending}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            fill="currentColor"
+          >
+            <path d="M2 21L23 12 2 3v7l15 2-15 2v7z" />
+          </svg>
+        </button>
+      </div>
     </div>
+  </div>
+
+  {/* Modal for Deletion Confirmation */}
+  {chatToDelete && (
+    <DeleteConfirmationModal
+      title={chatToDelete.message} // Pass the message title to the modal
+      onCancel={() => setChatToDelete(null)} // Hide modal on cancel
+      onDelete={handleDelete} // Confirm deletion
+    />
+  )}
+</div>
+
   );
 }
