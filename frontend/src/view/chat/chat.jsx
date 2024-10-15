@@ -40,30 +40,42 @@ export default function Chat() {
       active: false,
     },
   ]);
-
+  const handleEditChat = () => {
+    // If there are messages, update the last chat's date to "Today"
+    if (messages.length > 0) {
+      setChatHistory((prev) => {
+        const updatedHistory = [...prev];
+        if (updatedHistory.length > 0) {
+          updatedHistory[updatedHistory.length - 1].date = "Today"; // Update the last chat's date
+        }
+        return updatedHistory;
+      });
+  
+      // Clear the current messages for a new chat
+      setMessages([]); // This will allow a new chat to be initiated without placeholder text
+    }
+  };
+  
   // Send message functionality
   const handleSendMessage = async () => {
     if (message.trim()) {
       const userMessage = { message, date: "Now" };
-      setMessages([...messages, userMessage]);
-
-      // If it's the first message, add it to the sidebar history
+      setMessages((prev) => [...prev, userMessage]); // Add the new message to the current messages
+  
+      // When sending the first message, add it to the sidebar history
       if (messages.length === 0) {
-        setChatHistory([
-         
-          {
-            id: chatHistory.length + 1,
-            date: "Now",
-            message: message,
-            active: false,
-          },
-           ...chatHistory, 
-        ]);
+        const firstChat = {
+          id: chatHistory.length + 1,
+          date: "Today", // Classify it under "Today" once the first message is sent
+          message: userMessage.message, // Use the actual message sent
+          active: false,
+        };
+        setChatHistory((prev) => [firstChat, ...prev]); // Prepend to chat history
       }
-
-      setMessage("");
+  
+      setMessage(""); // Clear the input field
       setIsSending(true);
-
+  
       try {
         const response = await fetch("http://localhost:8000/ask-ai", {
           method: "POST",
@@ -82,6 +94,7 @@ export default function Chat() {
       }
     }
   };
+  
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -110,7 +123,8 @@ export default function Chat() {
             <ChatSidebar
               chatHistory={chatHistory} // Pass chat history to the sidebar
               onClose={() => setSidebarVisible(false)}
-              onDeleteRequest={handleDeleteRequest} // Pass the delete request handler
+              onDeleteRequest={handleDeleteRequest} 
+                onEdit={handleEditChat}// Pass the delete request handler
             />
           </div>
         ) : (
