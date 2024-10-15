@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const ChatSidebar = ({ chatHistory, onClose, onDeleteRequest }) => {
+const ChatSidebar = ({ chatHistory, onClose, onDeleteRequest, onEdit }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [hoveredChat, setHoveredChat] = useState(null);
 
@@ -22,7 +22,12 @@ const ChatSidebar = ({ chatHistory, onClose, onDeleteRequest }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <img src="/assets/edit.png" alt="edit" className="w-5 h-5" />
+        <img 
+          src="/assets/edit.png" 
+          alt="edit" 
+          className="w-5 h-5 cursor-pointer" 
+          onClick={onEdit} // Call the onEdit function when the edit icon is clicked
+        />
       </div>
 
       {/* Search Bar */}
