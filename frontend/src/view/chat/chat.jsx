@@ -8,7 +8,6 @@ export default function Chat() {
   const [message, setMessage] = useState(""); // For handling chat input
   const [messages, setMessages] = useState([]); // For displaying sent messages in the chat
   const [isSending, setIsSending] = useState(false);
-  // Chat history
   const [chatHistory, setChatHistory] = useState([
     {
       id: 1,
@@ -47,9 +46,23 @@ export default function Chat() {
     if (message.trim()) {
       const userMessage = { message, date: "Now" };
       setMessages([...messages, userMessage]);
+
+      // If it's the first message, add it to the sidebar history
+      if (messages.length === 0) {
+        setChatHistory([
+         
+          {
+            id: chatHistory.length + 1,
+            date: "Now",
+            message: message,
+            active: false,
+          },
+           ...chatHistory, 
+        ]);
+      }
+
       setMessage("");
       setIsSending(true);
-      console.log("in here"); // Disable button while waiting for response
 
       try {
         const response = await fetch("http://localhost:8000/ask-ai", {
@@ -60,7 +73,7 @@ export default function Chat() {
         const data = await response.json();
         setMessages((prev) => [
           ...prev,
-          { message: data.reply, date: "Now", fromAI: true },
+          { message: data.reply, date: "Today", fromAI: true },
         ]);
       } catch (error) {
         console.error("Error fetching AI response:", error);
@@ -69,11 +82,13 @@ export default function Chat() {
       }
     }
   };
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleSendMessage();
     }
   };
+
   const handleDeleteRequest = (chat) => {
     setChatToDelete(chat); // Set the chat that should be deleted when the modal is confirmed
   };
@@ -91,7 +106,7 @@ export default function Chat() {
       <div className="flex-grow flex">
         {/* Sidebar */}
         {isSidebarVisible ? (
-          <div className="w-72 mt-2 overflow-hidden transition-all ease-in-out duration-300">
+          <div className="w-72 mt-2 overflow-hidden transition-all ease-in-out duration-300 fixed left-0 top-0 bottom-0">
             <ChatSidebar
               chatHistory={chatHistory} // Pass chat history to the sidebar
               onClose={() => setSidebarVisible(false)}
@@ -100,7 +115,7 @@ export default function Chat() {
           </div>
         ) : (
           <div className="flex items-start justify-start p-4 w-auto h-full transition-all ease-in-out duration-300">
-            <div className="flex space-x-4 bg-white rounded-full shadow-md p-2">
+            <div className="flex space-x-4 bg-white rounded-full shadow-md p-2 fixed top-4 left-4">
               {/* Chat Icon */}
               <button
                 className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all duration-300"
@@ -133,7 +148,7 @@ export default function Chat() {
         {/* Chat Content */}
         <div
           className={`flex-grow flex flex-col justify-between transition-all duration-300 ${
-            isSidebarVisible ? "mr-6" : "mr-2"
+            isSidebarVisible ? "ml-80" : "ml-16"
           }`}
         >
           {/* Top-right with Clear button and Avatar */}
@@ -150,17 +165,26 @@ export default function Chat() {
           </div>
 
           {/* Chat Display Section */}
-          <div className="flex-grow p-4 overflow-y-auto  ">
+          <div className="flex-grow p-4 overflow-y-auto">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div key={index} className="mb-2 text-right">
-                  <span className="bg-blue-500 text-white py-2 px-4 rounded-lg inline-block">
+                <div
+                  key={index}
+                  className={`mb-2 text-${msg.fromAI ? "left" : "right"}`}
+                >
+                  <span
+                    className={`${
+                      msg.fromAI
+                        ? "bg-gray-200 text-black"
+                        : "bg-blue-500 text-white"
+                    } py-2 px-4 rounded-lg inline-block`}
+                  >
                     {msg.message}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">Su layout here</p>
+              <p className="text-gray-500">No messages yet. Start the conversation!</p>
             )}
           </div>
 
