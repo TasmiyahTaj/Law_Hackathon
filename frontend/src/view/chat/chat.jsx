@@ -50,14 +50,14 @@ export default function Chat() {
       // If it's the first message, add it to the sidebar history
       if (messages.length === 0) {
         setChatHistory([
-         
+
           {
             id: chatHistory.length + 1,
             date: "Now",
             message: message,
             active: false,
           },
-           ...chatHistory, 
+          ...chatHistory,
         ]);
       }
 
@@ -147,9 +147,8 @@ export default function Chat() {
 
         {/* Chat Content */}
         <div
-          className={`flex-grow flex flex-col justify-between transition-all duration-300 ${
-            isSidebarVisible ? "ml-80" : "ml-16"
-          }`}
+          className={`flex-grow flex flex-col justify-between transition-all duration-300 ${isSidebarVisible ? "ml-80" : "ml-16"
+            }`}
         >
           {/* Top-right with Clear button and Avatar */}
           <div className="flex justify-end p-4">
@@ -173,14 +172,9 @@ export default function Chat() {
                   className={`mb-2 text-${msg.fromAI ? "left" : "right"}`}
                 >
                   <span
-                    className={`${
-                      msg.fromAI
-                        ? "bg-gray-200 text-black"
-                        : "bg-blue-500 text-white"
-                    } py-2 px-4 rounded-lg inline-block`}
-                  >
-                    {msg.message}
-                  </span>
+                    className="bg-blue-500 text-white py-2 px-4 rounded-lg inline-block"
+                    dangerouslySetInnerHTML={{ __html: msg.message.replace(/\n/g, '<br />') }} // Replace line breaks with <br />
+                  />
                 </div>
               ))
             ) : (
