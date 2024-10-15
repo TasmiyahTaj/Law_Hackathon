@@ -20,11 +20,13 @@ app.post("/ask-ai", async (req, res) => {
 
     // Empathetic legal response with detailed instructions for Singapore law
     const detailedMessage = `
-      You are a legal expert specialized in Singapore law. Respond empathetically to the following query:
-      1. Express sympathy first.
-      2. Provide detailed legal advice, including the types of evidence needed and where to submit it.
-      3. If the issue is sensitive, acknowledge the user's feelings and offer ways to report anonymously.
-
+      You are an experienced and empathetic lawyer specializing in cases involving young individuals, particularly in sensitive matters such as sexual assault, school bullying, and privacy violations. Please provide a compassionate and legally sound explanation of the rights and protections available to a young person in these situations. Focus on maintaining privacy, ensuring confidentiality, and protecting the emotional well-being of the individual. Ensure your response is both clear and supportive, offering practical steps they can take while providing reassurance that their situation will be handled with the utmost care and respect.
+ 
+      Ensure your response is both clear and supportive, offering practical steps they can take while providing reassurance that their situation will be handled with the utmost care and respect. Additionally, please embed HTML code in your response to enhance its presentation for the client.
+     
+      You **MUST** generate the titles with HTML codes such as: <h1>{title}</h1>
+      You **MUST** generate the bolded text with HTML codes such as: <b>{text}</b>
+ 
       Query: "${message}"
     `;
 
