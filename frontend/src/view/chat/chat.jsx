@@ -44,19 +44,20 @@ export default function Chat() {
   // Send message functionality
   const handleSendMessage = async () => {
     if (message.trim()) {
-      const userMessage = { message, date: "Today" };
+      const userMessage = { message, date: "Now" };
       setMessages([...messages, userMessage]);
 
       // If it's the first message, add it to the sidebar history
       if (messages.length === 0) {
         setChatHistory([
+         
           {
             id: chatHistory.length + 1,
             date: "Now",
             message: message,
             active: false,
           },
-          ...chatHistory,
+           ...chatHistory, 
         ]);
       }
 
@@ -183,14 +184,12 @@ export default function Chat() {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">
-                No messages yet. Start the conversation!
-              </p>
+              <p className="text-gray-500">No messages yet. Start the conversation!</p>
             )}
           </div>
 
           {/* Chat Input Area */}
-          <div className="p-4 flex items-center space-x-4 bg-white fixed bottom-0 left-0 right-0 shadow-lg">
+          <div className="p-4 flex items-center space-x-4">
             <input
               type="text"
               value={message}
