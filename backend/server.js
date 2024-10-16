@@ -12,11 +12,15 @@ const port = 8000;
 // Initialize Google Generative AI with API key from .env
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 app.post("/ask-ai", async (req, res) => {
-  const { message } = req.body;
+  const { message, messages } = req.body;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const chat = model.startChat({
+      history: messages,
+    });
 
     // Empathetic legal response with detailed instructions for Singapore law
     const detailedMessage = `
@@ -31,8 +35,7 @@ Be straight to Point and help them sound reassuring
       Query: "${message}"
     `;
 
-    const result = await model.generateContent(detailedMessage);
-
+    const result = await  chat.sendMessage(detailedMessage);
     res.json({ reply: result.response.text() });
   } catch (error) {
     console.error("Error:", error);
