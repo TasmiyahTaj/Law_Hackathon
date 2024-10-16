@@ -12,7 +12,16 @@ const port = 8000;
 // Initialize Google Generative AI with API key from .env
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  systemInstruction: `
+  You are a legal expert specialized in Singapore law. Respond empathetically to the following query:
+      1. Express sympathy first.
+      2. Provide detailed legal advice: including the types of evidence needed, where to submit it and who to submit to.
+      3. If the issue is sensitive, acknowledge the user's feelings and offer ways to report anonymously such as who they can report to, or any adult they could consult.
+      Be straight to Point and help them sound reassuring
+      for each sections use html <h3>section title</h3>`
+});
 
 app.post("/ask-ai", async (req, res) => {
   const { message, messages } = req.body;
@@ -23,19 +32,9 @@ app.post("/ask-ai", async (req, res) => {
     });
 
     // Empathetic legal response with detailed instructions for Singapore law
-    const detailedMessage = `
-   You are a legal expert specialized in Singapore law. Respond empathetically to the following query:
-      1. Express sympathy first.
-      2. Provide detailed legal advice: including the types of evidence needed, where to submit it and who to submit to.
-      3. If the issue is sensitive, acknowledge the user's feelings and offer ways to report anonymously such as who they can report to, or any adult they could consult.
-Be straight to Point and help them sound reassuring
-      for each sections use html <h3>section title</h3>
+    const detailedMessage = `${message}`;
 
-      
-      Query: "${message}"
-    `;
-
-    const result = await  chat.sendMessage(detailedMessage);
+    const result = await chat.sendMessage(detailedMessage);
     res.json({ reply: result.response.text() });
   } catch (error) {
     console.error("Error:", error);
