@@ -99,7 +99,7 @@ export default function Chat() {
   // Send message functionality
   const handleSendMessage = async (inputMessage) => {
     const msgToSend = inputMessage || message;
-
+console.log(base_url)
     if (msgToSend.trim()) {
       const userMessage = {
         role: "user",
@@ -130,12 +130,12 @@ export default function Chat() {
             messages: messages,
           }),
         });
-        console.log(
-          JSON.stringify({
-            message: userMessage.parts[0].text,
-            messages: messages,
-          })
-        );
+        // console.log(
+        //   JSON.stringify({
+        //     message: userMessage.parts[0].text,
+        //     messages: messages,
+        //   })
+        // );
         const data = await response.json();
         setMessages((prev) => [
           ...prev,
