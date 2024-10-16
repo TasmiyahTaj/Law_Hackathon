@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import ChatSidebar from "../../components/sidebar";
 import DeleteConfirmationModal from "../../components/deleteConfirmation";
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 export default function Chat() {
-
   const [isSidebarVisible, setSidebarVisible] = useState(true);
-  const [chatToDelete, setChatToDelete] = useState(null); // State to track the chat to be deleted
-  const [message, setMessage] = useState(""); // For handling chat input
-  const [messages, setMessages] = useState([]); // For displaying sent messages in the chat
+  const [chatToDelete, setChatToDelete] = useState(null); 
+  const [isLoading, setIsLoading] = useState(false); 
+  const [message, setMessage] = useState(""); 
+  const [messages, setMessages] = useState([]); 
   const [isSending, setIsSending] = useState(false);
   const [chatHistory, setChatHistory] = useState([
     {
@@ -41,17 +41,31 @@ export default function Chat() {
       active: false,
     },
   ]);
+
+  const [commonQuestions, setCommonQuestions] = useState([
+    {
+      id: 1,
+      question: "What can I do about workplace discrimination?",
+    },
+    {
+      id: 2,
+      question: "How can I report bullying at school?",
+    },
+    {
+      id: 3,
+      question: "What are my rights if I face domestic violence?",
+    },
+  ]);
   const messagesEndRef = useRef(null);
 
-  // Function to scroll to the bottom of the chat
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Scroll to bottom whenever messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
   function formatMessage(text) {
     console.log(text)
     // // Replace asterisks around words to bold the words
@@ -63,69 +77,99 @@ export default function Chat() {
   }
 
   const handleEditChat = () => {
-    // If there are messages, update the last chat's date to "Today"
     if (messages.length > 0) {
       setChatHistory((prev) => {
         const updatedHistory = [...prev];
         if (updatedHistory.length > 0) {
-          updatedHistory[updatedHistory.length - 1].date = "Today"; // Update the last chat's date
+          updatedHistory[updatedHistory.length - 1].date = "Today";
         }
         return updatedHistory;
       });
-
-      // Clear the current messages for a new chat
-      setMessages([]); // This will allow a new chat to be initiated without placeholder text
+      setMessages([]); 
     }
   };
 
-  // Send message functionality
   const handleSendMessage = async () => {
     if (message.trim()) {
       const userMessage = {
         role: "user",
-        parts: [{ text: message }],
+        parts: [{ text: message }], // Ensure parts is an array
       };
-      setMessages((prev) => [...prev, userMessage]); // Add the new message to the current messages
 
-      // When sending the first message, add it to the sidebar history
+      setMessages((prev) => [...prev, userMessage]);
+
       if (messages.length === 0) {
         const firstChat = {
           id: chatHistory.length + 1,
-          date: "Today", // Classify it under "Today" once the first message is sent
-          message: userMessage.parts[0].text, // Use the actual message sent
+          date: "Today",
+          message: userMessage.parts[0].text,
           active: false,
         };
-        setChatHistory((prev) => [firstChat, ...prev]); // Prepend to chat history
+        setChatHistory((prev) => [firstChat, ...prev]);
       }
 
-      setMessage(""); // Clear the input field
+      setMessage(""); 
       setIsSending(true);
-
+      setIsLoading(true);
       try {
         const response = await fetch("http://localhost:8000/ask-ai", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: userMessage.parts[0].text, messages: messages }),
         });
-        console.log(JSON.stringify({ message: userMessage.parts[0].text, messages: messages }))
         const data = await response.json();
         setMessages((prev) => [
           ...prev,
           {
             role: "model",
-            parts: [{ text: data.reply }],
-          }
+            parts: [{ text: data.reply }], // Ensure parts is an array
+          },
         ]);
       } catch (error) {
         console.error("Error fetching AI response:", error);
       } finally {
-        setIsSending(false); // Re-enable button after response
+        setIsSending(false);
+        setIsLoading(false);
       }
     }
   };
 
+  const handleQuestionClick = async (question) => {
+    const userMessage = {
+      role: "user",
+      parts: [{ text: question }], // Using the same structure for common questions
+    };
 
-  const handleKeyDown = (e) => {
+    setMessages((prev) => [...prev, userMessage]);
+
+    const firstChat = {
+      id: chatHistory.length + 1,
+      date: "Today",
+      message: userMessage.parts[0].text,
+      active: false,
+    };
+    setChatHistory((prev) => [firstChat, ...prev]);
+
+    setMessage(""); 
+    setIsSending(true);
+
+    try {
+      const response = await fetch("http://localhost:8000/ask-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage.parts[0].text }),
+      });
+      const data = await response.json();
+      setMessages((prev) => [
+        ...prev,
+        { role: "model", parts: [{ text: data.reply }] },
+      ]);
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
+    } finally {
+      setIsSending(false);
+    }
+  };const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleSendMessage();
     }
@@ -142,78 +186,50 @@ export default function Chat() {
     setChatToDelete(null); // Close the modal
   };
 
+
+
+
   return (
     <div className="bg-[#F5F6FA] h-screen flex flex-col">
-      {/* Sidebar and Chat Content */}
       <div className="flex-grow flex">
-        {/* Sidebar */}
         {isSidebarVisible ? (
           <div className="w-72 mt-2 overflow-hidden transition-all ease-in-out duration-300 fixed left-0 top-0 bottom-0">
             <ChatSidebar
-              chatHistory={chatHistory} // Pass chat history to the sidebar
+              chatHistory={chatHistory}
               onClose={() => setSidebarVisible(false)}
               onDeleteRequest={handleDeleteRequest}
-              onEdit={handleEditChat}// Pass the delete request handler
+              onEdit={handleEditChat}
             />
           </div>
         ) : (
           <div className="flex items-start justify-start p-4 w-auto h-full transition-all ease-in-out duration-300">
             <div className="flex space-x-4 bg-white rounded-full shadow-md p-2 fixed top-4 left-4">
-              {/* Chat Icon */}
-              <button
-                className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all duration-300"
-                onClick={() => setSidebarVisible(true)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
-                  />
+              <button className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all duration-300" onClick={() => setSidebarVisible(true)}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                 </svg>
               </button>
-
-              {/* Edit Icon */}
               <button onClick={handleEditChat} className="p-3 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-400 transition-all duration-300">
                 <img src="/assets/edit.png" alt="edit" className="w-6 h-6" />
               </button>
             </div>
           </div>
         )}
-
-        {/* Chat Content */}
-        <div
-          className={`flex-grow flex flex-col justify-between transition-all duration-300 ${isSidebarVisible ? "ml-80" : "ml-16"
-            }`}
-        >
-          {/* Top-right with Clear button and Avatar */}
+        
+        <div className={`flex-grow flex flex-col justify-between transition-all duration-300 ${isSidebarVisible ? "ml-80" : "ml-16"}`}>
           <div className="flex justify-end p-4">
-            <button
-              className="text-gray-500 bg-gray-200 rounded-full px-3 py-1 hover:bg-gray-300 mr-2"
-              onClick={() => setMessages([])}
-            >
+            <button className="text-gray-500 bg-gray-200 rounded-full px-3 py-1 hover:bg-gray-300 mr-2" onClick={() => setMessages([])}>
               Clear
             </button>
-            <div className="bg-blue-500 rounded-full w-10 h-10 flex items-center justify-center text-white">
-              T
-            </div>
+            <div className="bg-blue-500 rounded-full w-10 h-10 flex items-center justify-center text-white">T</div>
           </div>
 
-          {/* Chat Display Section */}
           <div className="flex-grow p-4 overflow-y-auto" style={{ maxHeight: "calc(100vh - 160px)" }}>
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div key={index} className={`mb-2 flex ${msg.fromAI ? "justify-start" : "justify-end"}`}>
-                  {msg.fromAI && (
+                <div key={index} className={`mb-2 flex ${msg.role === "model" ? "justify-start" : "justify-end"}`}>
+                  {msg.role === "model" && (
                     <div className="mr-2 flex-shrink-0">
-                      {/* Person Icon inside a black circle */}
                       <div className="bg-black rounded-full p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
                           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -222,19 +238,35 @@ export default function Chat() {
                     </div>
                   )}
                   <span
-                    className={`py-2 px-4 rounded-lg inline-block ${msg.fromAI ? "bg-gray-200 text-black" : "bg-blue-500 text-white"}`}
-                    style={{ maxWidth: "95%", margin: '10px', wordWrap: "break-word" }}
-                    dangerouslySetInnerHTML={formatMessage(msg.parts[0].text)} // Insert formatted message
+                    className={`py-2 px-4 rounded-lg inline-block ${msg.role === "model" ? "bg-gray-200 text-black" : "bg-blue-500 text-white"}`}
+                    style={{ maxWidth: "95%", margin: "10px", wordWrap: "break-word" }}
+                    dangerouslySetInnerHTML={formatMessage(msg.parts[0].text)} 
                   />
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">Su layout here</p>
+              <div className="mt-20">
+                <p className="text-black text-3xl font-bold text-center">How can I assist you today?</p>
+                <div className="mt-10 flex flex-col items-center space-y-4">
+                  {commonQuestions.map((question) => (
+                    <button key={question.id} onClick={() => handleQuestionClick(question.question)} className="bg-white text-blue-700 border border-blue-400 p-3 rounded-full hover:border-blue-600 hover:text-blue-600 transition duration-200">
+                      {question.question}
+                    </button>
+                  ))}
+                   
+        
+                </div>
+              </div>
+            )}
+             {isLoading && (
+              <div className="flex justify-start mt-4">
+                <span className="bg-gray-200 text-black py-2 px-4 rounded-lg">
+                  Generating<span className="animate-pulse">...</span>
+                </span>
+              </div>
             )}
           </div>
 
-
-          {/* Chat Input Area */}
           <div className="p-4 flex items-center space-x-4">
             <input
               type="text"
@@ -245,18 +277,8 @@ export default function Chat() {
               className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
               disabled={isSending}
             />
-            <button
-              className="bg-blue-500 text-white rounded-full p-3 hover:bg-blue-600"
-              onClick={handleSendMessage}
-              disabled={isSending}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="currentColor"
-              >
+            <button className="bg-blue-500 text-white rounded-full p-3 hover:bg-blue-600" onClick={handleSendMessage} disabled={isSending}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                 <path d="M2 21L23 12 2 3v7l15 2-15 2v7z" />
               </svg>
             </button>
@@ -264,12 +286,11 @@ export default function Chat() {
         </div>
       </div>
 
-      {/* Modal for Deletion Confirmation */}
       {chatToDelete && (
         <DeleteConfirmationModal
-          title={chatToDelete.message} // Pass the message title to the modal
-          onCancel={() => setChatToDelete(null)} // Hide modal on cancel
-          onDelete={handleDelete} // Confirm deletion
+          title={chatToDelete.message} 
+          onCancel={() => setChatToDelete(null)} 
+          onDelete={handleDelete} 
         />
       )}
     </div>
