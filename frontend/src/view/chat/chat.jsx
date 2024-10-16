@@ -272,26 +272,48 @@ export default function Chat() {
           }`}
  
         >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            className="prose w-full"
-            components={{
-              strong: ({ node, ...props }) => (
-                <span className="font-bold" {...props} />
-              ),
-              h1: ({ node, ...props }) => (
-                <h1 className="text-2xl font-bold" {...props} />
-              ),
-              h2: ({ node, ...props }) => (
-                <h2 className="text-xl font-semibold" {...props} />
-              ),
-              p: ({ node, ...props }) => (
-                <p className={msg.role === "model" ? "text-black" : "text-white"} {...props} />
-              )
-            }}
-          >
-            {msg.parts[0].text}
-          </ReactMarkdown>
+<ReactMarkdown 
+  remarkPlugins={[remarkGfm]}
+  className="w-full"
+  components={{
+    strong: ({ node, ...props }) => (
+      <span className="font-bold text-gray-800" {...props} />
+    ),
+    h1: ({ node, ...props }) => (
+      <h1 className="text-4xl font-extrabold mb-6 mt-8 leading-tight text-gray-900 border-b-2 pb-2" {...props} />
+    ),
+    h2: ({ node, ...props }) => (
+      <h2 className="text-3xl font-semibold mb-4 mt-6 text-gray-800" {...props} />
+    ),
+    p: ({ node, ...props }) => (
+      <p className={`leading-loose text-lg ${msg.role === "model" ? "text-gray-700" : "text-gray-200"} mb-4`} {...props} />
+    ),
+    ul: ({ node, ...props }) => (
+      <ul className="list-disc list-inside mb-6 pl-8 text-gray-700" {...props} />
+    ),
+    li: ({ node, ...props }) => (
+      <li className="mb-2 text-lg" {...props} />  
+    ),
+    blockquote: ({ node, ...props }) => (
+      <blockquote className="border-l-4 border-blue-400 bg-blue-50 p-4 italic mb-6 text-gray-600 shadow-sm" {...props} />
+    ),
+    code: ({ node, ...props }) => (
+      <code className="bg-gray-100 text-sm p-1 rounded text-red-600" {...props} />
+    ),
+    a: ({ node, ...props }) => (
+      <a className="text-blue-600 hover:underline font-semibold" {...props} />
+    ),
+    // For section titles like "Evidence Needed for a PPO"
+    h3: ({ node, ...props }) => (
+      <h3 className="text-2xl font-bold mb-4 mt-6 text-gray-900" {...props} />
+    ),
+  }}
+>
+  {msg.parts[0].text}
+</ReactMarkdown>
+
+
+
         </div>
       </div>
     ))
