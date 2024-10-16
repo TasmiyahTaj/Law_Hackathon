@@ -100,7 +100,7 @@ export default function Chat() {
   const handleSendMessage = async (inputMessage) => {
     const msgToSend = inputMessage || message;
     if (msgToSend.trim()) {
-      const userMessage = {
+      const userMessage = { 
         role: "user",
         parts: [{ text: msgToSend }],
       };
