@@ -238,65 +238,87 @@ export default function Chat() {
             </div>
           </div>
 
-          {/* Chat Display Section */}
-          <div
-            className="flex-grow p-4 overflow-y-auto"
-            style={{ maxHeight: "calc(100vh - 160px)" }}
-          >
-            {messages.length > 0 ? (
-              messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`mb-2 flex ${msg.role === "model" ? "justify-start" : "justify-end"
-                    }`}
-                >
-                  {msg.role === "model" && (
-                    <div className="mr-2 flex-shrink-0">
-                      {/* Person Icon inside a black circle */}
-                      <div className="bg-black rounded-full p-2">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          width="24"
-                          height="24"
-                          fill="white"
-                        >
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
-                      </div>
-                    </div>
-                  )}
 
-                  <span
-                    className={`py-2 px-4 rounded-lg inline-block ${msg.role === "model" ? "bg-gray-200 text-black" : "bg-blue-500 text-white"}`}
-                    style={{ maxWidth: "95%", margin: '10px', wordWrap: "break-word" }}
-                  >
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose">
-                      {msg.parts[0].text}
-                    </ReactMarkdown>
-                  </span>
-                  
-                </div>
-              ))
-            ) : (
-              <div className="mt-20">
-                <p className="text-black text-3xl font-bold text-center">
-                  How can I assist you today?
-                </p>
-                <div className="mt-10 flex flex-col items-center space-y-4">
-                  {commonQuestions.map((question) => (
-                    <button
-                      key={question.id}
-                      onClick={() => handleQuestionClick(question.question)}
-                      className="bg-white text-blue-700 border border-blue-400 p-3 rounded-full hover:border-blue-600 hover:text-blue-600 transition duration-200"
-                    >
-                      {question.question}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+{/* Chat Display Section */}
+<div
+  className="flex-grow p-4 overflow-y-auto"
+  style={{ maxHeight: "calc(100vh - 160px)" }}
+>
+  {messages.length > 0 ? (
+    messages.map((msg, index) => (
+      <div
+        key={index}
+        className={`mb-4 flex ${msg.role === "model" ? "justify-start" : "justify-end"
+          } w-full`}
+      >
+        {msg.role === "model" && (
+          <div className="mr-2 flex-shrink-0">
+            {/* Person Icon inside a black circle */}
+            <div className="bg-black rounded-full p-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                fill="white"
+              >
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            </div>
           </div>
+        )}
+
+        <div className={`py-4 px-6 rounded-lg inline-block ${msg.role === "model" ? "bg-gray-200 text-black w-full" : "bg-blue-500 text-white"
+          }`}
+ 
+        >
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            className="prose w-full"
+            components={{
+              strong: ({ node, ...props }) => (
+                <span className="font-bold" {...props} />
+              ),
+              h1: ({ node, ...props }) => (
+                <h1 className="text-2xl font-bold" {...props} />
+              ),
+              h2: ({ node, ...props }) => (
+                <h2 className="text-xl font-semibold" {...props} />
+              ),
+              p: ({ node, ...props }) => (
+                <p className={msg.role === "model" ? "text-black" : "text-white"} {...props} />
+              )
+            }}
+          >
+            {msg.parts[0].text}
+          </ReactMarkdown>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="mt-20">
+      <p className="text-black text-3xl font-bold text-center">
+        How can I assist you today?
+      </p>
+      <div className="mt-10 flex flex-col items-center space-y-4">
+        {commonQuestions.map((question) => (
+          <button
+            key={question.id}
+            onClick={() => handleQuestionClick(question.question)}
+            className="bg-white text-blue-700 border border-blue-400 p-3 rounded-full hover:border-blue-600 hover:text-blue-600 transition duration-200"
+          >
+            {question.question}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+</div>
+
+
+
+
+
 
           {/* Chat Input Area */}
           <div className="p-4 flex items-center space-x-4">
