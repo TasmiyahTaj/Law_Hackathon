@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import ChatSidebar from "../../components/sidebar";
 import DeleteConfirmationModal from "../../components/deleteConfirmation";
 import { useEffect, useRef } from "react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 export default function Chat() {
   const [isSidebarVisible, setSidebarVisible] = useState(true);
   const [chatToDelete, setChatToDelete] = useState(null); // State to track the chat to be deleted
@@ -168,7 +171,6 @@ export default function Chat() {
   const handleQuestionClick = (question) => {
     handleSendMessage(question);
   };
-
   return (
     <div className="bg-[#F5F6FA] h-screen flex flex-col">
       {/* Sidebar and Chat Content */}
@@ -220,9 +222,8 @@ export default function Chat() {
 
         {/* Chat Content */}
         <div
-          className={`flex-grow flex flex-col justify-between transition-all duration-300 ${
-            isSidebarVisible ? "ml-80" : "ml-16"
-          }`}
+          className={`flex-grow flex flex-col justify-between transition-all duration-300 ${isSidebarVisible ? "ml-80" : "ml-16"
+            }`}
         >
           {/* Top-right with Clear button and Avatar */}
           <div className="flex justify-end p-4">
@@ -246,11 +247,10 @@ export default function Chat() {
               messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`mb-2 flex ${
-                    msg.fromAI ? "justify-start" : "justify-end"
-                  }`}
+                  className={`mb-2 flex ${msg.role === "model" ? "justify-start" : "justify-end"
+                    }`}
                 >
-                  {msg.fromAI && (
+                  {msg.role === "model" && (
                     <div className="mr-2 flex-shrink-0">
                       {/* Person Icon inside a black circle */}
                       <div className="bg-black rounded-full p-2">
@@ -266,19 +266,16 @@ export default function Chat() {
                       </div>
                     </div>
                   )}
+
                   <span
-                    className={`py-2 px-4 rounded-lg inline-block ${
-                      msg.fromAI
-                        ? "bg-gray-200 text-black"
-                        : "bg-blue-500 text-white"
-                    }`}
-                    style={{
-                      maxWidth: "95%",
-                      margin: "10px",
-                      wordWrap: "break-word",
-                    }}
-                    dangerouslySetInnerHTML={formatMessage(msg.parts[0].text)} // Insert formatted message
-                  />
+                    className={`py-2 px-4 rounded-lg inline-block ${msg.role === "model" ? "bg-gray-200 text-black" : "bg-blue-500 text-white"}`}
+                    style={{ maxWidth: "95%", margin: '10px', wordWrap: "break-word" }}
+                  >
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose">
+                      {msg.parts[0].text}
+                    </ReactMarkdown>
+                  </span>
+                  
                 </div>
               ))
             ) : (

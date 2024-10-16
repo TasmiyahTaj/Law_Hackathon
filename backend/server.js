@@ -19,8 +19,16 @@ const model = genAI.getGenerativeModel({
       1. Express sympathy first.
       2. Provide detailed legal advice: including the types of evidence needed, where to submit it and who to submit to.
       3. If the issue is sensitive, acknowledge the user's feelings and offer ways to report anonymously such as who they can report to, or any adult they could consult.
-      Be straight to Point and help them sound reassuring
-      for each sections use html <h3>section title</h3>`
+      Be straight to Point and help them sound reassuring.
+      
+      - Use Markdown formatting for your response.
+      - For section titles, use ### for headings.
+      - If there is a main title, use # for the main heading.
+      - For subheaders, use ## or ### as needed.
+      - Format lists using - for bullet points or numbered lists with 1., 2., 3..
+      - Ensure paragraphs are clearly separated with a blank line between them.
+      - Do not use HTML tags, only Markdown.
+`
 });
 
 app.post("/ask-ai", async (req, res) => {
