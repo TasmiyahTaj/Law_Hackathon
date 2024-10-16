@@ -99,7 +99,6 @@ export default function Chat() {
   // Send message functionality
   const handleSendMessage = async (inputMessage) => {
     const msgToSend = inputMessage || message;
-console.log(base_url)
     if (msgToSend.trim()) {
       const userMessage = {
         role: "user",
