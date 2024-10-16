@@ -65,6 +65,37 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const [isListening, setIsListening] = useState(false);
+
+  // Speech recognition setup
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    setMessage(transcript);
+    setIsListening(false);
+  };
+
+  recognition.onerror = (event) => {
+    console.error(event.error);
+    setIsListening(false);
+  };
+
+  const handleMicClick = () => {
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
+
   // Scroll to bottom whenever messages change
   useEffect(() => {
     scrollToBottom();
@@ -97,7 +128,8 @@ export default function Chat() {
 
   // Send message functionality
   const handleSendMessage = async (inputMessage) => {
-    const msgToSend = inputMessage || message;
+    console.log(message)
+    const msgToSend = message ||inputMessage;
 
     if (msgToSend.trim()) {
       const userMessage = {
@@ -344,15 +376,35 @@ export default function Chat() {
 
           {/* Chat Input Area */}
           <div className="p-4 flex items-center space-x-4">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message"
-              className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
-              disabled={isSending}
-            />
+             <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Type your message"
+        className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
+        disabled={isSending}
+      />
+      <button
+        onClick={handleMicClick}
+        className={`p-2 rounded-full ${isListening ? 'bg-red-500' : 'bg-gray-200'}`}
+        disabled={isSending}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 text-gray-700"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 1v14m0 4v4m-4-4h8m-4-14c-1.104 0-2 .896-2 2v4c0 1.104.896 2 2 2s2-.896 2-2V3c0-1.104-.896-2-2-2z"
+          />
+        </svg>
+      </button>
             <button
               className="bg-blue-500 text-white rounded-full p-3 hover:bg-blue-600"
               onClick={handleSendMessage}
