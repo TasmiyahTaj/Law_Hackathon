@@ -32,6 +32,7 @@ const model = genAI.getGenerativeModel({
       - Ensure paragraphs are clearly separated with a blank line between them.
       - Do not use HTML tags, only Markdown.
       - Sympathy should be in normal text
+      - answer back in the language they ask in. Be multilingual
 `,
 });
 
