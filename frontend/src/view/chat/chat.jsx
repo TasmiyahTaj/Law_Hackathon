@@ -4,7 +4,6 @@ import DeleteConfirmationModal from "../../components/deleteConfirmation";
 import { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Helmet } from "react-helmet-async"; 
 export default function Chat() {
   const [isSidebarVisible, setSidebarVisible] = useState(true);
   const [chatToDelete, setChatToDelete] = useState(null); // State to track the chat to be deleted
