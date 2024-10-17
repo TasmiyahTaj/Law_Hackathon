@@ -65,6 +65,37 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const [isListening, setIsListening] = useState(false);
+
+  // Speech recognition setup
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    setMessage(transcript);
+    setIsListening(false);
+  };
+
+  recognition.onerror = (event) => {
+    console.error(event.error);
+    setIsListening(false);
+  };
+
+  const handleMicClick = () => {
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
+
   // Scroll to bottom whenever messages change
   useEffect(() => {
     scrollToBottom();
@@ -98,7 +129,9 @@ export default function Chat() {
 
   // Send message functionality
   const handleSendMessage = async (inputMessage) => {
-    const msgToSend = inputMessage || message;
+    console.log(message)
+    const msgToSend = message ||inputMessage;
+
     if (msgToSend.trim()) {
       const userMessage = { 
         role: "user",
@@ -372,15 +405,25 @@ export default function Chat() {
 
           {/* Chat Input Area */}
           <div className="p-4 flex items-center space-x-4">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message"
-              className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
-              disabled={isSending}
-            />
+             <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Type your message"
+        className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
+        disabled={isSending}
+      />
+      <button
+        onClick={handleMicClick}
+        className={`p-2 rounded-full ${isListening ? 'bg-red-500' : 'bg-gray-200'}`}
+        disabled={isSending}
+      >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-circle">
+  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9 8.5 8.5 0 0 1 8.5 8.5z"></path>
+</svg>
+
+      </button>
             <button
               className="bg-blue-500 text-white rounded-full p-3 hover:bg-blue-600"
               onClick={handleSendMessage}
