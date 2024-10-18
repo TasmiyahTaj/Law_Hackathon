@@ -314,6 +314,7 @@ export default function Chat() {
       </svg>
     </div>
   ) : messages.length > 0 ? (
+    
     messages.map((msg, index) => (
       <div
         key={index}
