@@ -10,6 +10,17 @@ export default function Chat() {
   const [message, setMessage] = useState(""); // For handling chat input
   const [messages, setMessages] = useState([]); // For displaying sent messages in the chat
   const [isSending, setIsSending] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      setIsSending(true);
+      // Simulate an async message load, e.g., from an API
+      setTimeout(() => setIsSending(false), 2000); // 2 seconds delay for the loading state
+    }
+  }, [messages]);
+
   const [chatHistory, setChatHistory] = useState([
     {
       id: 1,
@@ -67,12 +78,13 @@ export default function Chat() {
   const [isListening, setIsListening] = useState(false);
 
   // Speech recognition setup
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
 
   recognition.continuous = false;
   recognition.interimResults = false;
-  recognition.lang = 'en-US';
+  recognition.lang = "en-US";
 
   recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript;
@@ -99,15 +111,6 @@ export default function Chat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-  function formatMessage(text) {
-    console.log(text);
-    // // Replace asterisks around words to bold the words
-    const formattedText = text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Replace double asterisks with bold
-      .replace(/\n/g, "<br />"); // Replace new lines with line breaks
-
-    return { __html: formattedText }; // Return as HTML content
-  }
 
   const handleEditChat = () => {
     // If there are messages, update the last chat's date to "Today"
@@ -128,11 +131,11 @@ export default function Chat() {
 
   // Send message functionality
   const handleSendMessage = async (inputMessage) => {
-    console.log(message)
-    const msgToSend = message ||inputMessage;
+    console.log(message);
+    const msgToSend = message || inputMessage;
 
     if (msgToSend.trim()) {
-      const userMessage = { 
+      const userMessage = {
         role: "user",
         parts: [{ text: msgToSend }],
       };
@@ -161,20 +164,32 @@ export default function Chat() {
             messages: messages,
           }),
         });
-        // console.log(
-        //   JSON.stringify({
-        //     message: userMessage.parts[0].text,
-        //     messages: messages,
-        //   })
-        // );
-        const data = await response.json();
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "model",
-            parts: [{ text: data.reply }],
-          },
-        ]);
+        if (response.status === 429) {
+          // Too many requests
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "model",
+              parts: [
+                {
+                  text: "Too many requests have been made. Please wait and try tomorrow.",
+                },
+              ],
+            },
+          ]);
+        } else if (!response.ok) {
+          // Generic error
+          throw new Error("Failed to fetch AI response");
+        } else {
+          const data = await response.json();
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "model",
+              parts: [{ text: data.reply }],
+            },
+          ]);
+        }
       } catch (error) {
         console.error("Error fetching AI response:", error);
       } finally {
@@ -205,7 +220,6 @@ export default function Chat() {
   };
   return (
     <div className="bg-[#F5F6FA] h-screen flex flex-col">
-    
       {/* Sidebar and Chat Content */}
       <div className="flex-grow flex">
         {/* Sidebar */}
@@ -279,107 +293,107 @@ export default function Chat() {
           >
             {messages.length > 0 ? (
               messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`mb-4 flex ${
-                    msg.role === "model" ? "justify-start" : "justify-end"
-                  } w-full`}
-                >
-                  {msg.role === "model" && (
-                    <div className="mr-2 flex-shrink-0">
-                      {/* Person Icon inside a black circle */}
-                      <div className="bg-black rounded-full p-2">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          width="24"
-                          height="24"
-                          fill="white"
-                        >
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
+                <div key={index} className="mb-4 w-full">
+                  {/* Check if it's a user message */}
+                  {msg.role === "user" && (
+                    <div className="flex justify-end mb-2">
+                      <div className="bg-blue-500 text-white py-4 px-6 rounded-lg max-w-md">
+                        {msg.parts[0].text}
                       </div>
                     </div>
                   )}
 
-                  <div
-                    className={`py-4 px-6 rounded-lg inline-block ${
-                      msg.role === "model"
-                        ? "bg-gray-200 text-black w-full"
-                        : "bg-blue-500 text-white max-w-md"
-                    }`}
-                  >
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      className="w-full"
-                      components={{
-                        strong: ({ node, ...props }) => (
-                          <span
-                            className="font-bold text-gray-800"
-                            {...props}
-                          />
-                        ),
-                        h1: ({ node, ...props }) => (
-                          <h1
-                            className="text-4xl font-extrabold mb-6 mt-8 leading-tight text-gray-900 border-b-2 pb-2"
-                            {...props}
-                          />
-                        ),
-                        h2: ({ node, ...props }) => (
-                          <h2
-                            className="text-3xl font-semibold mb-4 mt-6 text-gray-800"
-                            {...props}
-                          />
-                        ),
-                        p: ({ node, ...props }) => (
-                          <p
-                            className={`leading-loose text-lg ${
-                              msg.role === "model"
-                                ? "text-gray-700"
-                                : "text-gray-200"
-                            } mb-4`}
-                            {...props}
-                          />
-                        ),
-                        ul: ({ node, ...props }) => (
-                          <ul
-                            className="list-disc list-inside mb-6 pl-8 text-gray-700"
-                            {...props}
-                          />
-                        ),
-                        li: ({ node, ...props }) => (
-                          <li className="mb-2 text-lg" {...props} />
-                        ),
-                        blockquote: ({ node, ...props }) => (
-                          <blockquote
-                            className="border-l-4 border-blue-400 bg-blue-50 p-4 italic mb-6 text-gray-600 shadow-sm"
-                            {...props}
-                          />
-                        ),
-                        code: ({ node, ...props }) => (
-                          <code
-                            className="bg-gray-100 text-sm p-1 rounded text-red-600"
-                            {...props}
-                          />
-                        ),
-                        a: ({ node, ...props }) => (
-                          <a
-                            className="text-blue-600 hover:underline font-semibold"
-                            {...props}
-                          />
-                        ),
-                        // For section titles like "Evidence Needed for a PPO"
-                        h3: ({ node, ...props }) => (
-                          <h3
-                            className="text-2xl font-bold mb-4 mt-6 text-gray-900"
-                            {...props}
-                          />
-                        ),
-                      }}
-                    >
-                      {msg.parts[0].text}
-                    </ReactMarkdown>
-                  </div>
+                  {/* Check if it's a model message */}
+                  {msg.role === "model" && (
+                    <div className="flex justify-start mb-2">
+                      <div className="mr-2 flex-shrink-0">
+                        {/* Person Icon inside a black circle */}
+                        <div className="bg-black rounded-full p-2">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="24"
+                            height="24"
+                            fill="white"
+                          >
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-200 text-black py-4 px-6 rounded-lg w-full">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          className="w-full"
+                          components={{
+                            strong: ({ node, ...props }) => (
+                              <span
+                                className="font-bold text-gray-800"
+                                {...props}
+                              />
+                            ),
+                            h1: ({ node, ...props }) => (
+                              <h1
+                                className="text-4xl font-extrabold mb-6 mt-8 leading-tight text-gray-900 border-b-2 pb-2"
+                                {...props}
+                              />
+                            ),
+                            h2: ({ node, ...props }) => (
+                              <h2
+                                className="text-3xl font-semibold mb-4 mt-6 text-gray-800"
+                                {...props}
+                              />
+                            ),
+                            p: ({ node, ...props }) => (
+                              <p
+                                className={`leading-loose text-lg ${
+                                  msg.role === "model"
+                                    ? "text-gray-700"
+                                    : "text-gray-200"
+                                } mb-4`}
+                                {...props}
+                              />
+                            ),
+                            ul: ({ node, ...props }) => (
+                              <ul
+                                className="list-disc list-inside mb-6 pl-8 text-gray-700"
+                                {...props}
+                              />
+                            ),
+                            li: ({ node, ...props }) => (
+                              <li className="mb-2 text-lg" {...props} />
+                            ),
+                            blockquote: ({ node, ...props }) => (
+                              <blockquote
+                                className="border-l-4 border-blue-400 bg-blue-50 p-4 italic mb-6 text-gray-600 shadow-sm"
+                                {...props}
+                              />
+                            ),
+                            code: ({ node, ...props }) => (
+                              <code
+                                className="bg-gray-100 text-sm p-1 rounded text-red-600"
+                                {...props}
+                              />
+                            ),
+                            a: ({ node, ...props }) => (
+                              <a
+                                className="text-blue-600 hover:underline font-semibold"
+                                {...props}
+                              />
+                            ),
+                            h3: ({ node, ...props }) => (
+                              <h3
+                                className="text-2xl font-bold mb-4 mt-6 text-gray-900"
+                                {...props}
+                              />
+                            ),
+                          }}
+                        >
+                          {msg.parts[0].text}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
@@ -400,30 +414,63 @@ export default function Chat() {
                 </div>
               </div>
             )}
+
+            {/* Loader Section */}
+            {isSending && (
+              <div className="flex justify-center items-center w-full h-full mt-4">
+                {/* Loading Spinner */}
+                <svg
+                  className="animate-spin h-10 w-10 text-blue-500"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </div>
+            )}
           </div>
 
           {/* Chat Input Area */}
           <div className="p-4 flex items-center space-x-4">
-             <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Type your message"
-        className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
-        disabled={isSending}
-      />
-      <button
-        onClick={handleMicClick}
-        className={`p-2 rounded-full ${isListening ? 'bg-red-500' : 'bg-gray-200'}`}
-        disabled={isSending}
-      >
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zm4.59-3c0 2.48-2.02 4.5-4.59 4.5S7.41 13.48 7.41 11H6c0 3.06 2.44 5.5 5.59 5.91V19H10v2h4v-2h-1.59v-2.09c3.15-.41 5.59-2.85 5.59-5.91h-1.41z"/>
-</svg>
-
-
-      </button>
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message"
+              className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none"
+              disabled={isSending}
+            />
+            <button
+              onClick={handleMicClick}
+              className={`p-2 rounded-full ${
+                isListening ? "bg-red-500" : "bg-gray-200"
+              }`}
+              disabled={isSending}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                width="24"
+                height="24"
+              >
+                <path d="M12 14a3.5 3.5 0 003.5-3.5V5a3.5 3.5 0 00-7 0v5.5A3.5 3.5 0 0012 14zm7-3.5a.75.75 0 00-1.5 0 5.5 5.5 0 01-11 0 .75.75 0 00-1.5 0A7 7 0 0011.25 16v3h-2.25a.75.75 0 000 1.5h6a.75.75 0 000-1.5h-2.25v-3A7 7 0 0019 10.5z" />
+              </svg>
+            </button>
             <button
               className="bg-blue-500 text-white rounded-full p-3 hover:bg-blue-600"
               onClick={handleSendMessage}
