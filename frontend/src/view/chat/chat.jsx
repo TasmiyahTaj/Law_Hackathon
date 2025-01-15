@@ -418,9 +418,10 @@ export default function Chat() {
         className={`p-2 rounded-full ${isListening ? 'bg-red-500' : 'bg-gray-200'}`}
         disabled={isSending}
       >
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-circle">
-  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9 8.5 8.5 0 0 1 8.5 8.5z"></path>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3s-3 1.34-3 3v6c0 1.66 1.34 3 3 3zm4.59-3c0 2.48-2.02 4.5-4.59 4.5S7.41 13.48 7.41 11H6c0 3.06 2.44 5.5 5.59 5.91V19H10v2h4v-2h-1.59v-2.09c3.15-.41 5.59-2.85 5.59-5.91h-1.41z"/>
 </svg>
+
 
       </button>
             <button
